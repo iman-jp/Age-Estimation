@@ -25,7 +25,6 @@ for i, img_name in enumerate(sample_images):
     img_path = os.path.join(data_dir, img_name)
     img = Image.open(img_path)
     
-    # Parse the labels from the filename (e.g., "26_1_2_...")
     parts = img_name.split('_')
     try:
         age = parts[0]
