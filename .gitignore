@@ -2,4 +2,5 @@ utkface_images/
 *.zip
 .vscode/
 sapiens/
-_pycach_/
+_pycache_/
+*.pyc
