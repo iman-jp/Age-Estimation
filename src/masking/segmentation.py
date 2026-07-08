@@ -1,5 +1,5 @@
-from mediapipe_init import media_pipe
-from body_part import BodyPartMask
+from masking.mediapipe_init import media_pipe
+from masking.body_part import BodyPartMask
 import mediapipe as mp
 import numpy as np
 import matplotlib.pyplot as plt

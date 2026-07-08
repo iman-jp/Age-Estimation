@@ -1,17 +1,20 @@
 age_estimation/
 ├── data/
-│   ├── raw/           # UTKFace original, untouched
-│   ├── masked/        # Your masked variants go here
-│   └── processed/     # Cleaned, resized, normalized
+│   ├── raw/          
+│         ├── utkface_images
+│                ├── part1
+│                ├── part2
+│                ├── part3
+│   ├── masked/        
+│   └── processed/     
 ├── models/
-│   └── checkpoints/   # Saved model weights
+│   └── checkpoints/   
 ├── src/
-│   ├── dataset.py     # PyTorch Dataset class
-│   ├── model.py       # Model architecture
-│   ├── train.py       # Training logic
-│   ├── evaluate.py    # Evaluation logic
-│   └── masking.py     # Sapiens + masking pipeline
-├── main.py            # Click CLI entry point
-├── requirements.txt   # All your dependencies
+│   ├── dataset.py     
+│   ├── model.py       
+│   ├── train.py       
+│   ├── evaluate.py    
+│   └── masking.py     
+├── main.py            
+├── requirements.txt   
 └── README.md
-(ai generated)
