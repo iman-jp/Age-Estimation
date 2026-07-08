@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 # Point to your combined images folder
-data_dir = 'utkface_images/'
+data_dir = 'data/raw/utkface_images/part1'
 
 # 2. Grab only the actual JPEG images (ignoring .DS_Store or other files)
 all_images = [f for f in os.listdir(data_dir) if f.lower().endswith(('.jpg', '.jpeg'))]

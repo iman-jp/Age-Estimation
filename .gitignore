@@ -1,5 +1,5 @@
-utkface_images/
-*.zip
+data/
+venv/
 .vscode/
 sapiens/
 _pycache_/
