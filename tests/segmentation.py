@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 
-# --- Face mesh landmark indices for specific regions ---
+
 
 
 
@@ -31,7 +31,7 @@ def apply_mask(image, mask):
 
 
 def extract_face_regions(image_path):
-    # Load image
+    
     face_landmarker,pose_landmarker = media_pipe()
     pil_image = Image.open(image_path).convert('RGB')
     image_np = np.array(pil_image)
@@ -49,23 +49,26 @@ def extract_face_regions(image_path):
     
 
     
-    print( BodyPartMask.LEFT_EYE)
-    print( BodyPartMask.LEFT_EYE.value)
-    # Extract each region
-    left_eye_mask   = get_region_mask(BodyPartMask.LEFT_EYE.value,w,h,landmarks)
-    right_eye_mask  = get_region_mask(BodyPartMask.RIGHT_EYE.value,w,h,landmarks)
+    
+    # left_eye_mask   = get_region_mask(BodyPartMask.LEFT_EYE.value,w,h,landmarks)
+    # right_eye_mask  = get_region_mask(BodyPartMask.RIGHT_EYE.value,w,h,landmarks)
     nose_mask       = get_region_mask(BodyPartMask.NOSE.value,w,h,landmarks)
     lips_mask       = get_region_mask(BodyPartMask.LIPS.value,w,h,landmarks)
+    chin_mask       = get_region_mask(BodyPartMask.CHIN.value,w,h,landmarks)
+    eyes_mask       = get_region_mask(BodyPartMask.UPPER_FACE.value,w,h,landmarks)
 
-    left_eye_img    = apply_mask(image_np, left_eye_mask)
-    right_eye_img   = apply_mask(image_np, right_eye_mask)
+    # left_eye_img    = apply_mask(image_np, left_eye_mask)
+    # right_eye_img   = apply_mask(image_np, right_eye_mask)
     nose_img        = apply_mask(image_np, nose_mask)
     lips_img        = apply_mask(image_np, lips_mask)
+    chin_img        = apply_mask(image_np,chin_mask)
+    eyses_img       = apply_mask(image_np,eyes_mask)
 
-    # Plot
-    fig, axes = plt.subplots(1, 5, figsize=(18, 4))
-    titles = ['Original', 'Left Eye', 'Right Eye', 'Nose', 'Lips']
-    images = [image_np, left_eye_img, right_eye_img, nose_img, lips_img]
+    
+    fig, axes = plt.subplots(1, 6, figsize=(18, 4))
+    titles = ['Original', 'Left Eye', 'Right Eye', 'Nose', 'Lips','Chin']
+    # images = [image_np, left_eye_img, right_eye_img, nose_img, lips_img, chin_img]
+    images = [image_np, eyses_img, nose_img, lips_img, chin_img]
 
     for ax, img, title in zip(axes, images, titles):
         ax.imshow(img)
@@ -76,4 +79,9 @@ def extract_face_regions(image_path):
     plt.show()
 
 extract_face_regions(r'..\utkface_images\105_1_0_20170112213507183.jpg')
-# extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\26_0_0_20170117144510833.jpg')
+extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\26_0_0_20170117144510833.jpg')
+extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\27_1_0_20170117014038281.jpg')
+extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\25_0_0_20170113210127389.jpg')
+extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\21_1_4_20170103224438000.jpg')
+extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\21_1_1_20170116214444631.jpg')
+extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\21_0_1_20170116030053264.jpg')
