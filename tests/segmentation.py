@@ -30,10 +30,13 @@ def apply_mask(image, mask):
     return result
 
 
-def extract_face_regions(image_path):
+def extract_face_regions(image_input):
     
     face_landmarker,pose_landmarker = media_pipe()
-    pil_image = Image.open(image_path).convert('RGB')
+    if isinstance(image_input, Image.Image):
+        pil_image = image_input.convert('RGB')
+    else:
+        pil_image = Image.open(image_input).convert('RGB')
     image_np = np.array(pil_image)
     h, w = image_np.shape[:2]
 
@@ -78,10 +81,10 @@ def extract_face_regions(image_path):
     plt.tight_layout()
     plt.show()
 
-extract_face_regions(r'..\utkface_images\105_1_0_20170112213507183.jpg')
-extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\26_0_0_20170117144510833.jpg')
-extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\27_1_0_20170117014038281.jpg')
-extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\25_0_0_20170113210127389.jpg')
-extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\21_1_4_20170103224438000.jpg')
-extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\21_1_1_20170116214444631.jpg')
-extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\21_0_1_20170116030053264.jpg')
+# extract_face_regions(r'..\utkface_images\105_1_0_20170112213507183.jpg')
+# extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\26_0_0_20170117144510833.jpg')
+# extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\27_1_0_20170117014038281.jpg')
+# extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\25_0_0_20170113210127389.jpg')
+# extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\21_1_4_20170103224438000.jpg')
+# extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\21_1_1_20170116214444631.jpg')
+# extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\21_0_1_20170116030053264.jpg')
