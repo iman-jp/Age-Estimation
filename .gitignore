@@ -4,3 +4,4 @@ utkface_images/
 sapiens/
 _pycache_/
 *.pyc
+data/
