@@ -1,6 +1,14 @@
+cat > .gitignore << 'EOF'
 data/
 venv/
+rocm-env/
 .vscode/
 sapiens/
-_pycache_/
+__pycache__/
 *.pyc
+*.pt
+*.pth
+.DS_Store
+EOF
+logs/
+checkpoints/
