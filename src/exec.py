@@ -33,8 +33,7 @@ if __name__ == "__main__":
     model = build_age_model()
     model.model.to("cuda")
 
-    # run_id = hyperparameters["run_id"]
-    run_id = "bs128_ep30_lr0.001_20260827_012345"
+    run_id = hyperparameters["run_id"]
     checkpoint_path = f"checkpoints/{run_id}.pt"
     os.makedirs("checkpoints", exist_ok=True)
 
