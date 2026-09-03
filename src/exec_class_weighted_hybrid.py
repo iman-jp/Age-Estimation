@@ -1,12 +1,12 @@
 import os
 import torch
-import torch.nn as nn
 import torch.optim as optim
+import torch.nn as nn
 
 from torch.utils.data import DataLoader
-from dataset import AgeDataset, basic_transform
+from dataset import AgeDataset, basic_transform, compute_age_weights_hybrid
 from model import build_age_model
-from train import train_one_epoch
+from train import train_one_epoch_weighted
 from evaluate import validate
 from logging_utils import setup_epoch_log, log_epoch, setup_batch_log
 from datetime import datetime
@@ -17,15 +17,21 @@ if __name__ == "__main__":
     hyperparameters = {
         "batch_size": 64,
         "start_epoch": 0,
-        "num_epochs": 30,
-        "learning_rate": 0.001,
-        "loss_function": nn.L1Loss(),
+        "num_epochs": 40,
+        "learning_rate": 0.003,
+        "cap_multiplier": 20.0,
+        "bucket_threshold": 85,
+        "bucket_size": 10,
     }
 
     hyperparameters["run_id"] = (
         f"bs{hyperparameters['batch_size']}"
         f"_ep{hyperparameters['num_epochs']}"
         f"_lr{hyperparameters['learning_rate']}"
+        f"_classWeightedHybrid"
+        f"_capMultiplier{hyperparameters['cap_multiplier']}"
+        f"_bucketThreshold{hyperparameters['bucket_threshold']}"
+        f"_bucketSize{hyperparameters['bucket_size']}"
         f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     )
 
@@ -51,10 +57,20 @@ if __name__ == "__main__":
     train_dataset = AgeDataset("/home/omid/Age-Estimation/data/train", transform=basic_transform)
     val_dataset = AgeDataset("/home/omid/Age-Estimation/data/val", transform=basic_transform)
 
+    age_weights = compute_age_weights_hybrid(
+        train_dataset,
+        bucket_threshold=hyperparameters["bucket_threshold"],
+        bucket_size=hyperparameters["bucket_size"],
+        cap_multiplier=hyperparameters["cap_multiplier"],
+    )
+    print(f"Weight for age 27 (common): {age_weights.get(27):.3f}")
+    print(f"Weight for age 90 (bucketed, rare): {age_weights.get(90):.3f}")
+    print(f"Weight for age 110 (bucketed, very rare): {age_weights.get(110):.3f}")
+
     train_loader = DataLoader(train_dataset, batch_size=hyperparameters["batch_size"], shuffle=True, num_workers=4, pin_memory=True)
     val_loader = DataLoader(val_dataset, batch_size=hyperparameters["batch_size"], shuffle=False, num_workers=4, pin_memory=True)
 
-    loss_fn = hyperparameters["loss_function"]
+    loss_fn = nn.L1Loss()  # validation always plain, unweighted — same reasoning as the non-hybrid weighted run
     optimizer = optim.Adam(model.model.parameters(), lr=hyperparameters["learning_rate"])
 
     num_epochs = hyperparameters["num_epochs"]
@@ -65,7 +81,7 @@ if __name__ == "__main__":
     setup_batch_log(batch_log_path)
 
     for epoch in range(start_epoch, num_epochs):
-        train_loss = train_one_epoch(model, train_loader, loss_fn, optimizer)
+        train_loss = train_one_epoch_weighted(model, train_loader, optimizer, age_weights)
         val_loss = validate(model, val_loader, loss_fn, run_id=run_id, epoch=epoch + 1, batch_log_path=batch_log_path)
         print(f"Epoch {epoch+1}/{num_epochs} — train loss: {train_loss:.4f} — val loss: {val_loss:.4f}")
 
