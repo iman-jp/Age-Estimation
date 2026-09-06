@@ -5,6 +5,7 @@ from PIL import Image
 from torch.utils.data import DataLoader
 import math
 from collections import Counter
+import csv
 
 
 basic_transform = transforms.Compose([
@@ -13,17 +14,26 @@ basic_transform = transforms.Compose([
 ])
 
 class AgeDataset(Dataset):
-    def __init__(self, image_dir, transform=None):
+    def __init__(self, image_dir, transform=None, blocked_filenames=None):
         self.image_paths = []
         self.ages = []
+        blocked_filenames = blocked_filenames or set()
+        skipped = 0
+
         for filename in os.listdir(image_dir):
             if filename.endswith(".jpg"):
+                if filename in blocked_filenames:
+                    skipped += 1
+                    continue
                 filepath = os.path.join(image_dir, filename)
                 age = parse_age_from_filename(filename)
                 if age is not None:
                     self.image_paths.append(filepath)
                     self.ages.append(age)
+
         self.transform = transform or basic_transform
+        if blocked_filenames:
+            print(f"Skipped {skipped} blocked (no-face-detected) images from {image_dir}")
 
     def __len__(self):
         return len(self.image_paths)
@@ -78,19 +88,40 @@ def compute_age_weights_hybrid(dataset, bucket_threshold=85, bucket_size=10, cap
     age_weights = {age: bucket_weights[age_to_bucket_key[age]] for age in age_counts}
     return age_weights
 
+def load_blocklist(csv_path):
+    """
+    Load the no-face-detected CSV into {split: set(filenames)}.
+    """
+    blocklist = {}
+    with open(csv_path, newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            blocklist.setdefault(row["split"], set()).add(row["filename"])
+    return blocklist
+
 
 if __name__ == "__main__":
-    train_dataset = AgeDataset("/home/omid/Age-Estimation/data/train", transform=basic_transform)
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=4)
+    # train_dataset = AgeDataset("/home/omid/Age-Estimation/data/train", transform=basic_transform)
+    # train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=4)
 
-    dataset = AgeDataset("/home/omid/Age-Estimation/data/test", transform=basic_transform)
-    print(f"Dataset size: {len(dataset)}")
+    # dataset = AgeDataset("/home/omid/Age-Estimation/data/test", transform=basic_transform)
+    # print(f"Dataset size: {len(dataset)}")
 
-    loader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=4)
-    images, ages = next(iter(loader))
-    print("Batch image shape:", images.shape)
-    print("Batch ages shape:", ages.shape)
-    print("First few ages:", ages[:5])
+    # loader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=4)
+    # images, ages = next(iter(loader))
+    # print("Batch image shape:", images.shape)
+    # print("Batch ages shape:", ages.shape)
+    # print("First few ages:", ages[:5])
+
+    blocklist = load_blocklist("/home/omid/Age-Estimation/logs/no_face_detection.csv")
+    print(f"Train blocklist size: {len(blocklist.get('train', set()))}")
+
+    ds = AgeDataset(
+        "/home/omid/Age-Estimation/data/train",
+        transform=basic_transform,
+        blocked_filenames=blocklist.get("train", set()),
+    )
+    print(f"Train dataset size after filtering: {len(ds)}")
 
     # testing dataset distribution and weights
     # for split_name, split_dir in [

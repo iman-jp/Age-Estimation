@@ -8,7 +8,10 @@ import torch.nn as nn
 
 def build_age_model():
     model = YOLO("yolo26n-cls.pt")
-    model.model.model[10].linear = nn.Linear(in_features=1280, out_features=1, bias=True)
+    model.model.model[10].linear = nn.Sequential(
+        nn.Linear(in_features=1280, out_features=1, bias=True),
+        nn.Softplus()
+    )
     return model
 
 if __name__ == "__main__":

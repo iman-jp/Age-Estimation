@@ -10,6 +10,7 @@ from train import train_one_epoch_weighted
 from evaluate import validate
 from logging_utils import setup_epoch_log, log_epoch, setup_batch_log
 from datetime import datetime
+from dataset import AgeDataset, basic_transform, load_blocklist
 
 
 if __name__ == "__main__":
@@ -19,8 +20,8 @@ if __name__ == "__main__":
         "start_epoch": 0,
         "num_epochs": 40,
         "learning_rate": 0.003,
-        "cap_multiplier": 20.0,
-        "bucket_threshold": 85,
+        "cap_multiplier": 10.0,
+        "bucket_threshold": 65,
         "bucket_size": 10,
     }
 
@@ -33,6 +34,8 @@ if __name__ == "__main__":
         f"_bucketThreshold{hyperparameters['bucket_threshold']}"
         f"_bucketSize{hyperparameters['bucket_size']}"
         f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        f"_softplus"
+        f"_with_blocklist"
     )
 
     model = build_age_model()
@@ -54,8 +57,21 @@ if __name__ == "__main__":
     else:
         print("No checkpoint found, starting fresh")
 
-    train_dataset = AgeDataset("/home/omid/Age-Estimation/data/train", transform=basic_transform)
-    val_dataset = AgeDataset("/home/omid/Age-Estimation/data/val", transform=basic_transform)
+    # train_dataset = AgeDataset("/home/omid/Age-Estimation/data/train", transform=basic_transform)
+    # val_dataset = AgeDataset("/home/omid/Age-Estimation/data/val", transform=basic_transform)
+
+    blocklist = load_blocklist("/home/omid/Age-Estimation/logs/no_face_detection.csv")
+
+    train_dataset = AgeDataset(
+        "/home/omid/Age-Estimation/data/train",
+        transform=basic_transform,
+        blocked_filenames=blocklist.get("train", set()),
+    )
+    val_dataset = AgeDataset(
+        "/home/omid/Age-Estimation/data/val",
+        transform=basic_transform,
+        blocked_filenames=blocklist.get("val", set()),
+    )
 
     age_weights = compute_age_weights_hybrid(
         train_dataset,

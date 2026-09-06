@@ -67,7 +67,7 @@ def evaluate_on_test(checkpoint_path, test_dir, batch_size=1, log_path=None):
 
 
 if __name__ == "__main__":
-    checkpoint_path = "checkpoints/bs64_ep40_lr0.003_classWeightedHybrid_capMultiplier10.0_bucketThreshold65_bucketSize10_20260830_110906.pt" 
+    checkpoint_path = "checkpoints/bs64_ep40_lr0.001_classWeightedHybrid_capMultiplier10.0_bucketThreshold65_bucketSize10_20260903_224611_softplus.pt" 
     test_dir = "/home/omid/Age-Estimation/data/test"
     log_path = "logs/test_results.csv"
 
