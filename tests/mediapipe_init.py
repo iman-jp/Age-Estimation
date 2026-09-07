@@ -7,10 +7,13 @@ def media_pipe():
     face_options = vision.FaceLandmarkerOptions(
         base_options=face_base_options,
         num_faces=1,
+        min_face_presence_confidence=0.5,
         min_face_detection_confidence=0.5
     )
-    face_landmarker = vision.FaceLandmarker.create_from_options(face_options)
 
+    face_landmarker = vision.FaceLandmarker.create_from_options(face_options)
+    # print("mediapipe init with min presence 1 and min detection 2")
+    
     pose_base_options = python.BaseOptions(model_asset_path=r'C:\Users\imanj\Desktop\Age-Estimation\mediapipe/pose_landmarker_heavy.task')
     pose_options = vision.PoseLandmarkerOptions(
         base_options=pose_base_options,
