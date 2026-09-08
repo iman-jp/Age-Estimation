@@ -11,7 +11,7 @@ import cv2
 
 def fall_back(pose_result, face_landmarker, image_np, w: int, h: int):
     if not pose_result or not pose_result.pose_landmarks:
-        return None
+        return None,None
 
     pose_landmarks = pose_result.pose_landmarks[0]
             
@@ -21,7 +21,7 @@ def fall_back(pose_result, face_landmarker, image_np, w: int, h: int):
     head_ys = [pose_landmarks[i].y * h for i in head_indices if pose_landmarks[i].visibility > 0.3]
 
     if not head_xs or not head_ys:
-        return None
+        return None,None
 
     center_x = (min(head_xs) + max(head_xs)) / 2
     center_y = (min(head_ys) + max(head_ys)) / 2
@@ -42,7 +42,7 @@ def fall_back(pose_result, face_landmarker, image_np, w: int, h: int):
     #print("we have cropped and before the first if")
     if cropped_np.size > 0:
     
-        target_size = 512  # Ideal size for MediaPipe face detection
+        target_size = 512  
         crop_h, crop_w = cropped_np.shape[:2]
 
         if crop_h < target_size or crop_w < target_size:
@@ -61,10 +61,10 @@ def fall_back(pose_result, face_landmarker, image_np, w: int, h: int):
         face_result = face_landmarker.detect(cropped_mp_image)
         #print(face_result.face_landmarks)
         if face_result and face_result.face_landmarks:
-            print("Face successfully detected in cropped head region!")
+            # print("Face successfully detected in cropped head region!")
             return (face_result,cropped_np)
 
-    return None,None
+    return (None,None)
 
 def get_region_mask(indices:list,w:int,h:int,landmarks):
     """
@@ -120,18 +120,29 @@ def extract_face_regions(image_input):
     
     left_eye_mask   = get_region_mask(BodyPartMask.LEFT_EYE.value,w,h,landmarks)
     right_eye_mask  = get_region_mask(BodyPartMask.RIGHT_EYE.value,w,h,landmarks)
+    eyes_e_mask   = get_region_mask(BodyPartMask.EYES_E.value,w,h,landmarks)
     nose_mask       = get_region_mask(BodyPartMask.NOSE.value,w,h,landmarks)
-    lips_mask       = get_region_mask(BodyPartMask.EYES_E.value,w,h,landmarks)
-    chin_mask       = get_region_mask(BodyPartMask.LOWER_FACE.value,w,h,landmarks)
-    eyes_mask       = get_region_mask(BodyPartMask.UPPER_FACE.value,w,h,landmarks)
+    lips_mask       = get_region_mask(BodyPartMask.LIPS.value,w,h,landmarks)
+    chin_mask       = get_region_mask(BodyPartMask.CHIN.value,w,h,landmarks)
+    bulls_eye_mask   = get_region_mask(BodyPartMask.BULLS_EYE.value,w,h,landmarks)
+    upper_mask       = get_region_mask(BodyPartMask.UPPER_FACE.value,w,h,landmarks)
+    lower_mask       = get_region_mask(BodyPartMask.LOWER_FACE.value,w,h,landmarks)
+    
 
+
+    
+    #dont forget need to use the eyses_img in combo with left and right eys img
     left_eye_img    = apply_mask(image_np, left_eye_mask)
     right_eye_img   = apply_mask(image_np, right_eye_mask)
+    eyes_e_img    = apply_mask(image_np, eyes_e_mask)
+    eyses_img   = apply_mask(left_eye_img, right_eye_mask)
     nose_img        = apply_mask(image_np, nose_mask)
     lips_img        = apply_mask(image_np, lips_mask)
     chin_img        = apply_mask(image_np,chin_mask)
-    eyses_img       = apply_mask(image_np,eyes_mask)
-
+    bulls_eye_img    = apply_mask(image_np, bulls_eye_mask)
+    upper_img    = apply_mask(image_np, upper_mask)
+    lower_mask_img    = apply_mask(image_np, lower_mask)
+    
     
 
     
@@ -149,9 +160,9 @@ def extract_face_regions(image_input):
     plt.show()
 
 # extract_face_regions(r'..\utkface_images\105_1_0_20170112213507183.jpg')
-#extract_face_regions(r"C:\Users\imanj\Desktop\Age-Estimation\data\utkface_images\25_1_0_20170104021710995.jpg")
+extract_face_regions(r"C:\Users\imanj\Desktop\Age-Estimation\data\utkface_images\25_1_0_20170104021710995.jpg")
 #extract_face_regions(r"C:\Users\imanj\Pictures\Screenshots\Screenshot 2026-09-07 195310.png")
-extract_face_regions(r"C:\Users\imanj\Pictures\Camera Roll\WIN_20260903_14_02_38_Pro.jpg")
+#extract_face_regions(r"C:\Users\imanj\Pictures\Camera Roll\WIN_20260903_14_02_38_Pro.jpg")
 #extract_face_regions(r"C:\Users\imanj\Pictures\Camera Roll\WIN_20260903_14_02_43_Pro.jpg")
 # extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\21_1_1_20170116214444631.jpg')
 # extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\21_0_1_20170116030053264.jpg')
