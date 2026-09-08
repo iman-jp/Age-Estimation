@@ -9,7 +9,7 @@ from PIL import Image
 
 def draw_landmarks(image_path):
     face_landmarker,pose_landmarker = media_pipe()
-    print("\n--- Display Options ---")
+    print("\n--Display Options---")
     print("1: Only the changed version")
     print("2: Both side-by-side")
     choice = input("Enter your choice (1 or 2): ").strip()
@@ -32,7 +32,6 @@ def draw_landmarks(image_path):
     if face_result.face_landmarks:
         for lm in face_result.face_landmarks[0]:
             x, y = int(lm.x * w), int(lm.y * h)
-            # Small 2x2 green dots
             annotated[max(0,y-1):min(h,y+1), max(0,x-1):min(w,x+1)] = [0, 255, 0]
 
     
@@ -44,7 +43,7 @@ def draw_landmarks(image_path):
                 x, y = int(lm.x * w), int(lm.y * h)
                 
                
-                print(f"✅ Landmark {idx} is visible!")
+                print(f" Landmark {idx} is visible!")
                 print(f"   Pixel Loc: X -> {x}, Y -> {y} (Normalized: {lm.x:.4f}, {lm.y:.4f})")
                 
                 
@@ -52,7 +51,7 @@ def draw_landmarks(image_path):
                 x_min, x_max = max(0, x - 3), min(w, x + 3)
                 annotated[y_min:y_max, x_min:x_max] = [255, 0, 0]
             else:
-                print(f"❌ Skipping {idx} (Visibility: {lm.visibility:.2f})")
+                print(f" Skipping {idx} (Visibility: {lm.visibility:.2f})")
 
     
     if choice == '2':
@@ -78,4 +77,4 @@ def draw_landmarks(image_path):
 
 
 # draw_landmarks(r'..\utkface_images\105_1_0_20170112213507183.jpg')
-# draw_landmarks(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\26_0_0_20170117144510833.jpg')
+# draw_landmarks(r'\Desktop\Age-Estimation\utkface_images\26_0_0_20170117144510833.jpg')
