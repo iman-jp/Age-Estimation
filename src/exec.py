@@ -51,8 +51,21 @@ if __name__ == "__main__":
     train_dataset = AgeDataset("/home/omid/Age-Estimation/data/train", transform=basic_transform)
     val_dataset = AgeDataset("/home/omid/Age-Estimation/data/val", transform=basic_transform)
 
-    train_loader = DataLoader(train_dataset, batch_size=hyperparameters["batch_size"], shuffle=True, num_workers=4, pin_memory=True)
-    val_loader = DataLoader(val_dataset, batch_size=hyperparameters["batch_size"], shuffle=False, num_workers=4, pin_memory=True)
+    # train_loader = DataLoader(train_dataset, batch_size=hyperparameters["batch_size"], shuffle=True, num_workers=4, pin_memory=True)
+    # val_loader = DataLoader(val_dataset, batch_size=hyperparameters["batch_size"], shuffle=False, num_workers=4, pin_memory=True)
+    
+    blocklist = load_blocklist("/home/omid/Age-Estimation/logs/no_face_detection.csv")
+
+    train_dataset = AgeDataset(
+        "/home/omid/Age-Estimation/data/train",
+        transform=basic_transform,
+        blocked_filenames=blocklist.get("train", set()),
+    )
+    val_dataset = AgeDataset(
+        "/home/omid/Age-Estimation/data/val",
+        transform=basic_transform,
+        blocked_filenames=blocklist.get("val", set()),
+    )
 
     loss_fn = hyperparameters["loss_function"]
     optimizer = optim.Adam(model.model.parameters(), lr=hyperparameters["learning_rate"])

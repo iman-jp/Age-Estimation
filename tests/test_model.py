@@ -6,14 +6,14 @@ import csv
 import torch
 from torch.utils.data import DataLoader
 
-from dataset import AgeDataset, basic_transform
+from dataset import AgeDataset, basic_transform, load_blocklist
 from model import build_age_model
 
 
 LOGGING_ENABLED = True  
 
 
-def evaluate_on_test(checkpoint_path, test_dir, batch_size=1, log_path=None):
+def evaluate_on_test(checkpoint_path, test_dir, batch_size=1, log_dir="logs"):
     model = build_age_model()
     model.model.to("cuda")
 
@@ -22,8 +22,18 @@ def evaluate_on_test(checkpoint_path, test_dir, batch_size=1, log_path=None):
     print(f"Checkpoint: {checkpoint_path}")
     print(f"  (trained to epoch {checkpoint['epoch']}, best val loss during training: {checkpoint['best_val_loss']:.4f})")
 
-    test_dataset = AgeDataset(test_dir, transform=basic_transform)
+    # test_dataset = AgeDataset(test_dir, transform=basic_transform)
+
+    blocklist = load_blocklist("/home/omid/Age-Estimation/logs/no_face_detection.csv")
+
+    test_dataset = AgeDataset(
+        test_dir,
+        transform=basic_transform,
+        blocked_filenames=blocklist.get("test", set()),
+    )
+
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+
 
     model.model.eval()
     total_abs_error = 0.0
@@ -51,10 +61,13 @@ def evaluate_on_test(checkpoint_path, test_dir, batch_size=1, log_path=None):
                 results_rows.append([name, actual, predicted])
 
     test_mae = total_abs_error / num_samples
+
     print(f"Test set MAE ({num_samples} images): {test_mae:.4f} years")
 
-    if LOGGING_ENABLED and log_path is not None:
-        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    if LOGGING_ENABLED:
+        stem = os.path.splitext(os.path.basename(checkpoint_path))[0]
+        log_path = os.path.join(log_dir, f"test_{stem}.csv")
+        os.makedirs(log_dir, exist_ok=True)
         with open(log_path, "w", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(["image", "actual_age", "predicted_age"])
@@ -67,8 +80,7 @@ def evaluate_on_test(checkpoint_path, test_dir, batch_size=1, log_path=None):
 
 
 if __name__ == "__main__":
-    checkpoint_path = "checkpoints/bs64_ep40_lr0.001_classWeightedHybrid_capMultiplier10.0_bucketThreshold65_bucketSize10_20260903_224611_softplus.pt" 
+    checkpoint_path = "checkpoints/bs64_ep40_lr0.003_classWeightedHybrid_capMultiplier10.0_bucketThreshold65_bucketSize10_20260904_200247_softplus_with_blocklist.pt" 
     test_dir = "/home/omid/Age-Estimation/data/test"
-    log_path = "logs/test_results.csv"
 
-    evaluate_on_test(checkpoint_path, test_dir, log_path=log_path)
+    evaluate_on_test(checkpoint_path, test_dir)

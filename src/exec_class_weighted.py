@@ -50,8 +50,21 @@ if __name__ == "__main__":
     else:
         print("No checkpoint found, starting fresh")
 
-    train_dataset = AgeDataset("/home/omid/Age-Estimation/data/train", transform=basic_transform)
-    val_dataset = AgeDataset("/home/omid/Age-Estimation/data/val", transform=basic_transform)
+    # train_dataset = AgeDataset("/home/omid/Age-Estimation/data/train", transform=basic_transform)
+    # val_dataset = AgeDataset("/home/omid/Age-Estimation/data/val", transform=basic_transform)
+
+    blocklist = load_blocklist("/home/omid/Age-Estimation/logs/no_face_detection.csv")
+
+    train_dataset = AgeDataset(
+        "/home/omid/Age-Estimation/data/train",
+        transform=basic_transform,
+        blocked_filenames=blocklist.get("train", set()),
+    )
+    val_dataset = AgeDataset(
+        "/home/omid/Age-Estimation/data/val",
+        transform=basic_transform,
+        blocked_filenames=blocklist.get("val", set()),
+    )
 
     age_weights = compute_age_weights(train_dataset, cap_multiplier=hyperparameters["cap_multiplier"])
     print(f"Weight for age 27 (common): {age_weights.get(27):.3f}")
