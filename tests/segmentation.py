@@ -39,7 +39,7 @@ def fall_back(pose_result, face_landmarker, image_np, w: int, h: int):
 
     
     cropped_np = image_np[crop_min_y:crop_max_y, crop_min_x:crop_max_x]
-
+    #print("we have cropped and before the first if")
     if cropped_np.size > 0:
     
         target_size = 512  # Ideal size for MediaPipe face detection
@@ -59,14 +59,12 @@ def fall_back(pose_result, face_landmarker, image_np, w: int, h: int):
         cropped_mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=np.ascontiguousarray(cropped_np))
         
         face_result = face_landmarker.detect(cropped_mp_image)
-        
+        #print(face_result.face_landmarks)
         if face_result and face_result.face_landmarks:
             print("Face successfully detected in cropped head region!")
             return (face_result,cropped_np)
 
-    return None
- 
-
+    return None,None
 
 def get_region_mask(indices:list,w:int,h:int,landmarks):
     """
@@ -85,9 +83,8 @@ def get_region_mask(indices:list,w:int,h:int,landmarks):
 
 def apply_mask(image, mask):
     result = image.copy()
-    result[mask == 0] = 0
+    result[mask == 255] = 0
     return result
-
 
 def extract_face_regions(image_input):
     
@@ -107,11 +104,14 @@ def extract_face_regions(image_input):
         pose_result = pose_landmarker.detect(mp_image)
     
         face_result,image_np = fall_back(pose_result, face_landmarker, image_np, w, h)
+
+        if not face_result or not face_result.face_landmarks:
+                print("No face detected after fallback attempts.")
+                return None
+
         h, w = image_np.shape[:2]
 
-    if not face_result or not face_result.face_landmarks:
-        print("No face detected after fallback attempts.")
-        return None
+   
         
         
 
@@ -133,6 +133,8 @@ def extract_face_regions(image_input):
     eyses_img       = apply_mask(image_np,eyes_mask)
 
     
+
+    
     fig, axes = plt.subplots(1, 7, figsize=(18, 4))
     titles = ['Original', 'Left Eye', 'Right Eye', 'Nose', 'Lips','Chin','eyes']
     images = [image_np, left_eye_img, right_eye_img, nose_img, lips_img, chin_img, eyses_img]
@@ -147,9 +149,9 @@ def extract_face_regions(image_input):
     plt.show()
 
 # extract_face_regions(r'..\utkface_images\105_1_0_20170112213507183.jpg')
-extract_face_regions(r"C:\Users\imanj\Desktop\Age-Estimation\data\utkface_images\25_1_0_20170104021710995.jpg")
-# extract_face_regions(r"C:\Users\imanj\Pictures\Screenshots\Screenshot 2026-09-07 195310.png")
-# extract_face_regions(r"C:\Users\imanj\Pictures\Camera Roll\WIN_20260903_14_02_38_Pro.jpg")
-# extract_face_regions(r"C:\Users\imanj\Pictures\Camera Roll\WIN_20260903_14_02_43_Pro.jpg")
+#extract_face_regions(r"C:\Users\imanj\Desktop\Age-Estimation\data\utkface_images\25_1_0_20170104021710995.jpg")
+#extract_face_regions(r"C:\Users\imanj\Pictures\Screenshots\Screenshot 2026-09-07 195310.png")
+extract_face_regions(r"C:\Users\imanj\Pictures\Camera Roll\WIN_20260903_14_02_38_Pro.jpg")
+#extract_face_regions(r"C:\Users\imanj\Pictures\Camera Roll\WIN_20260903_14_02_43_Pro.jpg")
 # extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\21_1_1_20170116214444631.jpg')
 # extract_face_regions(r'C:\Users\imanj\Desktop\Age-Estimation\utkface_images\21_0_1_20170116030053264.jpg')
