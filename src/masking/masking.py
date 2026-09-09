@@ -1,7 +1,7 @@
 import csv
 from pathlib import Path
 from datetime import datetime
-import argparse
+
 import mediapipe as mp
 import numpy as np
 from PIL import Image, ImageDraw
@@ -9,6 +9,14 @@ import cv2
 
 from mediapipe_init import media_pipe
 from body_part import BodyPartMask
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+INPUT_ROOT = PROJECT_ROOT / "data" / "splits"
+OUTPUT_ROOT = PROJECT_ROOT / "data" / "masked" / "bulls_eye_masked"
+VARIANT_NAME = "bulls_eye_masked"
+LOG_PATH = PROJECT_ROOT / "data" / "masking_bulls_eye_masked_log.csv"
 
 
 def fall_back(pose_result, face_landmarker, image_np, w: int, h: int):
@@ -102,6 +110,7 @@ class FailureLog:
         self.log_path = Path(log_path)
         self.flush_every = flush_every
         self._buffer = []
+        self.log_path.parent.mkdir(parents=True, exist_ok=True)
         is_new_file = not self.log_path.exists() or self.log_path.stat().st_size == 0
         self._file = open(self.log_path, mode='a', newline='', encoding='utf-8')
         self._writer = csv.writer(self._file)
@@ -170,6 +179,8 @@ def mask_dataset(input_root, output_root, variant_name, indices_groups, log_path
 
 
 VARIANT_DEFINITIONS = {
+    "left_eye_masked":    [BodyPartMask.LEFT_EYE.value],
+    "right_eye_masked":   [BodyPartMask.RIGHT_EYE.value],
     "eyes_masked":        [BodyPartMask.LEFT_EYE.value, BodyPartMask.RIGHT_EYE.value],
     "eyes_e_masked":      [BodyPartMask.EYES_E.value],
     "nose_masked":        [BodyPartMask.NOSE.value],
@@ -182,19 +193,12 @@ VARIANT_DEFINITIONS = {
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--input", required=True)
-    parser.add_argument("--output", required=True)
-    parser.add_argument("--variant", required=True, choices=sorted(VARIANT_DEFINITIONS.keys()))
-    parser.add_argument("--log", default="masking_log.csv")
-    args = parser.parse_args()
-
     mask_dataset(
-        input_root=args.input,
-        output_root=args.output,
-        variant_name=args.variant,
-        indices_groups=VARIANT_DEFINITIONS[args.variant],
-        log_path=args.log,
+        input_root=INPUT_ROOT,
+        output_root=OUTPUT_ROOT,
+        variant_name=VARIANT_NAME,
+        indices_groups=VARIANT_DEFINITIONS[VARIANT_NAME],
+        log_path=LOG_PATH,
     )
 
 
