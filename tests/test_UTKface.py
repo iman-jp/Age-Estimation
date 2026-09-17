@@ -1,3 +1,6 @@
+"""
+this script show the distribution of the UTKFace images
+"""
 import os
 
 DATA_ROOT = 'data/raw/utkface_images'

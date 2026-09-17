@@ -1,3 +1,6 @@
+"""
+this script is used to test and visulize extracted mask and some of the core function for the main project
+"""
 from masking.mediapipe_init import media_pipe
 from masking.body_part import BodyPartMask
 import mediapipe as mp
@@ -6,10 +9,19 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 import cv2
 
-
-
-
 def fall_back(pose_result, face_landmarker, image_np, w: int, h: int):
+    """
+    this function trigger when face could not be detected so it will try to zoom in the picture and call mediapipe detection again
+    args:
+        pose_result: list of the pose landmark. used to found the face boundry
+        face_landmark : used to call face detection after crop in
+        image_np: image as a numpy array
+        w: width of image
+        h:height of image
+    return: 
+        None,None if function fail
+        face_result,cropped_np if function successed: return list of face landmarks and the cropped image numpy array
+    """
     if not pose_result or not pose_result.pose_landmarks:
         return None,None
 
@@ -68,12 +80,14 @@ def fall_back(pose_result, face_landmarker, image_np, w: int, h: int):
 
 def get_region_mask(indices:list,w:int,h:int,landmarks):
     """
-    return a array of the given indices
-    :param indices : the section we want to extract as a list of num
-    :param w : wide of the matplot
-    :param h : height of the matplot
-    :param landmarks : all the point made by mediapipe
-    :return : array of the given segment
+    this function crop out the given point in indices
+    args:
+        indices : the section we want to extract as a list of num
+        w : wide of the matplot
+        h : height of the matplot
+        landmarks : all the point made by mediapipe
+    return : 
+        array of the given segment
     """
     mask = Image.new('L', (w, h), 0)
     draw = ImageDraw.Draw(mask)
@@ -87,7 +101,10 @@ def apply_mask(image, mask):
     return result
 
 def extract_face_regions(image_input):
+    """
+    this function visulize all of the mask apply to the face 
     
+    """    
     face_landmarker,pose_landmarker = media_pipe()
     if isinstance(image_input, Image.Image):
         pil_image = image_input.convert('RGB')

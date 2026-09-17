@@ -1,14 +1,15 @@
-import csv
+"""
+this script is used for masking data with given folder as input and put them the output path
+.along the way there is also log function that showes the faild attempt.
+"""
 from pathlib import Path
-from datetime import datetime
-
 import mediapipe as mp
 import numpy as np
 from PIL import Image, ImageDraw
 import cv2
-
 from mediapipe_init import media_pipe
 from body_part import BodyPartMask
+from failurelog import FailureLog
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -18,8 +19,37 @@ OUTPUT_ROOT = PROJECT_ROOT / "data" / "masked" / "bulls_eye_masked"
 VARIANT_NAME = "bulls_eye_masked"
 LOG_PATH = PROJECT_ROOT / "data" / "masking_bulls_eye_masked_log.csv"
 
+SPLIT_NAMES = ("train", "val", "test")
+
+VARIANT_DEFINITIONS = {
+    "left_eye_masked":    [BodyPartMask.LEFT_EYE.value],
+    "right_eye_masked":   [BodyPartMask.RIGHT_EYE.value],
+    "eyes_masked":        [BodyPartMask.LEFT_EYE.value, BodyPartMask.RIGHT_EYE.value],
+    "eyes_e_masked":      [BodyPartMask.EYES_E.value],
+    "nose_masked":        [BodyPartMask.NOSE.value],
+    "lips_masked":        [BodyPartMask.LIPS.value],
+    "chin_masked":        [BodyPartMask.CHIN.value],
+    "bulls_eye_masked":   [BodyPartMask.BULLS_EYE.value],
+    "upper_face_masked":  [BodyPartMask.UPPER_FACE.value],
+    "lower_face_masked":  [BodyPartMask.LOWER_FACE.value],
+}
+
+
 
 def fall_back(pose_result, face_landmarker, image_np, w: int, h: int):
+    """
+    this function trigger when face could not be detected so it will try to zoom in the picture and call mediapipe detection again
+        args:
+            pose_result: list of the pose landmark. used to found the face boundry
+            face_landmark : used to call face detection after crop in
+            image_np: image as a numpy array
+            w: width of image
+            h:height of image
+        return: 
+            None,None if function fail
+            face_result,cropped_np if function successed: return list of face landmarks and the cropped image numpy array
+    """
+    
     if not pose_result or not pose_result.pose_landmarks:
         return None, None
 
@@ -63,6 +93,16 @@ def fall_back(pose_result, face_landmarker, image_np, w: int, h: int):
 
 
 def get_region_mask(indices: list, w: int, h: int, landmarks):
+    """
+    this function crop out the given point in indices
+        args:
+            indices : the section we want to extract as a list of num
+            w : wide of the matplot
+            h : height of the matplot
+            landmarks : all the point made by mediapipe
+        return : 
+            array of the given segment
+    """
     mask = Image.new('L', (w, h), 0)
     draw = ImageDraw.Draw(mask)
     points = [(int(landmarks[i].x * w), int(landmarks[i].y * h)) for i in indices]
@@ -77,6 +117,19 @@ def apply_mask(image, mask):
 
 
 def detect_face_landmarks(image_path, face_landmarker, pose_landmarker):
+    """
+    this function is used to distinguished between the method that mediapipe found the face or not at
+    all.
+    args:
+        image_path: image path that currently is being investigated.
+        face_landmarkder: mediapipe landmarker for detecting the face.
+        pose_landmarker: mediapipe landmarker that will be used inside the fall_back function.
+    returns:
+        three possible value : direct-> showing face founded without need to call fallback function
+        fallback-> show the state that the face could not be found the first go around and fall back function called and
+        it was sucsessfull.
+        failed -> showes that mediapipe could not found any face even after fallback
+    """
     pil_image = Image.open(image_path).convert('RGB')
     image_np = np.array(pil_image)
     h, w = image_np.shape[:2]
@@ -98,6 +151,9 @@ def detect_face_landmarks(image_path, face_landmarker, pose_landmarker):
 
 
 def apply_masking_variant(image_np, landmarks, w: int, h: int, indices_groups: list):
+    """
+    function to add mulitply mask together.
+    """
     combined_mask = np.zeros((h, w), dtype=np.uint8)
     for indices in indices_groups:
         region_mask = get_region_mask(indices, w, h, landmarks)
@@ -105,48 +161,11 @@ def apply_masking_variant(image_np, landmarks, w: int, h: int, indices_groups: l
     return apply_mask(image_np, combined_mask)
 
 
-class FailureLog:
-    def __init__(self, log_path, flush_every: int = 100):
-        self.log_path = Path(log_path)
-        self.flush_every = flush_every
-        self._buffer = []
-        self.log_path.parent.mkdir(parents=True, exist_ok=True)
-        is_new_file = not self.log_path.exists() or self.log_path.stat().st_size == 0
-        self._file = open(self.log_path, mode='a', newline='', encoding='utf-8')
-        self._writer = csv.writer(self._file)
-        if is_new_file:
-            self._writer.writerow(["image_name", "split", "variant", "reason", "timestamp"])
-
-    def log_failure(self, image_name, split, variant, reason="no_face_detected"):
-        self._buffer.append([
-            image_name, split, variant, reason,
-            datetime.now().isoformat(timespec='seconds'),
-        ])
-        if len(self._buffer) >= self.flush_every:
-            self._flush()
-
-    def _flush(self):
-        if not self._buffer:
-            return
-        self._writer.writerows(self._buffer)
-        self._file.flush()
-        self._buffer.clear()
-
-    def close(self):
-        self._flush()
-        self._file.close()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
-
-
-SPLIT_NAMES = ("train", "val", "test")
-
-
 def mask_dataset(input_root, output_root, variant_name, indices_groups, log_path):
+    """
+    function to iterate through the whole folder and put the copy in the output folder in case of sucess and 
+    log them if mediapipe could not detect a face
+    """
     input_root = Path(input_root)
     output_root = Path(output_root)
     face_landmarker, pose_landmarker = media_pipe()
@@ -178,18 +197,6 @@ def mask_dataset(input_root, output_root, variant_name, indices_groups, log_path
                 Image.fromarray(masked_np).save(split_out / image_path.name)
 
 
-VARIANT_DEFINITIONS = {
-    "left_eye_masked":    [BodyPartMask.LEFT_EYE.value],
-    "right_eye_masked":   [BodyPartMask.RIGHT_EYE.value],
-    "eyes_masked":        [BodyPartMask.LEFT_EYE.value, BodyPartMask.RIGHT_EYE.value],
-    "eyes_e_masked":      [BodyPartMask.EYES_E.value],
-    "nose_masked":        [BodyPartMask.NOSE.value],
-    "lips_masked":        [BodyPartMask.LIPS.value],
-    "chin_masked":        [BodyPartMask.CHIN.value],
-    "bulls_eye_masked":   [BodyPartMask.BULLS_EYE.value],
-    "upper_face_masked":  [BodyPartMask.UPPER_FACE.value],
-    "lower_face_masked":  [BodyPartMask.LOWER_FACE.value],
-}
 
 
 def main():

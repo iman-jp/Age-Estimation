@@ -1,4 +1,6 @@
-
+"""
+this script purpose is to visulize the mediapipe result
+"""
 from mediapipe_init import media_pipe
 import mediapipe as mp
 import numpy as np
@@ -8,6 +10,12 @@ from PIL import Image
 
 
 def draw_landmarks(image_path):
+    """
+    this function call the mediapipe show the result of landmark on the picture
+    args:
+        image path
+
+    """
     face_landmarker,pose_landmarker = media_pipe()
     print("\n--Display Options---")
     print("1: Only the changed version")
@@ -56,7 +64,7 @@ def draw_landmarks(image_path):
     
     if choice == '2':
         
-        fig, axes = plt.subplots(1, 2, figsize=(15, 8))
+        fig,axes = plt.subplots(1, 2, figsize=(15, 8))
         
         axes[0].imshow(image_np)
         axes[0].set_title('Original Image')
@@ -66,7 +74,6 @@ def draw_landmarks(image_path):
         axes[1].set_title('Face (green) + Pose (red)')
         axes[1].axis('off')
     else:
-        # Single version mode (Default)
         plt.figure(figsize=(10, 8))
         plt.imshow(annotated)
         plt.title('Processed Landmarks')

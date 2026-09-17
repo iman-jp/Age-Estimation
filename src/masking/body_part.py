@@ -3,6 +3,9 @@ from enum import Enum
 class BodyPartMask(Enum):
     """
     in this class we have all the body part for the mediapipe segmentaion that we can use to mask the picture
+    Note:
+        eyes-e-> is a extended version of the eyes; it contains area around the eyes(glabella+eyes+eyebrows)
+        bulls-eye-> is area between the two eyes(glabella)
     """
     LEFT_EYE = [463, 341, 256, 252, 253, 254, 339, 255, 359, 467, 260, 259, 257, 258, 286, 414]
     RIGHT_EYE = [130, 25, 110, 24, 23, 22, 26, 112, 243, 190, 56, 28, 27, 29, 30, 247]
