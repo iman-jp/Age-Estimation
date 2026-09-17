@@ -26,16 +26,19 @@ if __name__ == "__main__":
     }
 
     hyperparameters["run_id"] = (
-        f"bs{hyperparameters['batch_size']}"
-        f"_ep{hyperparameters['num_epochs']}"
-        f"_lr{hyperparameters['learning_rate']}"
-        f"_classWeightedHybrid"
-        f"_capMultiplier{hyperparameters['cap_multiplier']}"
-        f"_bucketThreshold{hyperparameters['bucket_threshold']}"
-        f"_bucketSize{hyperparameters['bucket_size']}"
+        # f"bs{hyperparameters['batch_size']}"
+        # f"_ep{hyperparameters['num_epochs']}"
+        # f"_lr{hyperparameters['learning_rate']}"
+        # f"_classWeightedHybrid"
+        # f"_capMultiplier{hyperparameters['cap_multiplier']}"
+        # f"_bucketThreshold{hyperparameters['bucket_threshold']}"
+        # f"_bucketSize{hyperparameters['bucket_size']}"
+        # f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        # f"_softplus"
+        # f"_with_blocklist"
+        f"base_model"
+        f"_upper_face_masked"
         f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        f"_softplus"
-        f"_with_blocklist"
     )
 
     model = build_age_model()
@@ -63,12 +66,12 @@ if __name__ == "__main__":
     blocklist = load_blocklist("/home/omid/Age-Estimation/logs/no_face_detection.csv")
 
     train_dataset = AgeDataset(
-        "/home/omid/Age-Estimation/data/train",
+        "/home/omid/Age-Estimation/data/masked/upper_face_masked/train",
         transform=basic_transform,
         blocked_filenames=blocklist.get("train", set()),
     )
     val_dataset = AgeDataset(
-        "/home/omid/Age-Estimation/data/val",
+        "/home/omid/Age-Estimation/data/masked/upper_face_masked/val",
         transform=basic_transform,
         blocked_filenames=blocklist.get("val", set()),
     )
@@ -86,7 +89,7 @@ if __name__ == "__main__":
     train_loader = DataLoader(train_dataset, batch_size=hyperparameters["batch_size"], shuffle=True, num_workers=4, pin_memory=True)
     val_loader = DataLoader(val_dataset, batch_size=hyperparameters["batch_size"], shuffle=False, num_workers=4, pin_memory=True)
 
-    loss_fn = nn.L1Loss()  # validation always plain, unweighted — same reasoning as the non-hybrid weighted run
+    loss_fn = nn.L1Loss() 
     optimizer = optim.Adam(model.model.parameters(), lr=hyperparameters["learning_rate"])
 
     num_epochs = hyperparameters["num_epochs"]
