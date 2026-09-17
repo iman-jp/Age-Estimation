@@ -80,7 +80,8 @@ def evaluate_on_test(checkpoint_path, test_dir, batch_size=1, log_dir="logs"):
 
 
 if __name__ == "__main__":
-    checkpoint_path = "checkpoints/bs64_ep40_lr0.003_classWeightedHybrid_capMultiplier10.0_bucketThreshold65_bucketSize10_20260904_200247_softplus_with_blocklist.pt" 
-    test_dir = "/home/omid/Age-Estimation/data/test"
 
-    evaluate_on_test(checkpoint_path, test_dir)
+        checkpoint_path = ""
+        test_dir = "/home/omid/Age-Estimation/logs/model_testing_logs"
+        
+        evaluate_on_test(checkpoint_path, test_dir)
