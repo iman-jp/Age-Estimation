@@ -5,6 +5,7 @@ from logging_utils import log_batch
 def validate(model, val_loader, loss_fn, run_id=None, epoch=None, batch_log_path=None):
     model.model.eval()
     total_loss = 0.0
+    total_mae = 0.0
     num_batches = 0
 
     with torch.no_grad():
@@ -14,6 +15,7 @@ def validate(model, val_loader, loss_fn, run_id=None, epoch=None, batch_log_path
 
             outputs = model.model(images)
             outputs = outputs[1]
+
             loss = loss_fn(outputs, ages)
 
             total_loss += loss.item()
