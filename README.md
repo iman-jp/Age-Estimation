@@ -44,7 +44,6 @@ Age-Estimation/
 │ ├── exec_class_weighted_hybrid.py # final locked training runner (hybrid weighting)
 │ ├── build_fusion_data.py # builds per-image prediction table across all 9 models
 │ ├── train_fusion_model.py # trains and bootstrap-tests the 3 fusion models
-│ ├── test_fusion_per_image.py # per-image fusion model results
 │ └── masking/
 │ ├── masking.py # applies a masking condition across a dataset
 │ ├── mediapipe_init.py # MediaPipe face/pose landmarker setup
@@ -52,11 +51,16 @@ Age-Estimation/
 │ └── failurelog.py # logs images where face detection failed
 ├── tests/
 │ ├── test_model.py # test-set evaluation with per-image CSV output
-│ └── predict_single_image.py # single-image inference sanity check
+│ ├── test_fusion_model.py # per-image fusion model results
+│ ├── predict_single_image.py # single-image inference sanity check
+│ ├── test_UTKface.py # dataset/filename parsing checks
+│ ├── mediapipe_pipeline.py # masking pipeline test
+│ └── segmentation.py # segmentation-related test
 ├── data/
 │ ├── splits/ # train / val / test, unmasked
 │ └── masked/ # one folder per masking condition, each with train/val/test
-├── checkpoints/ # trained model weights (.pt) and fusion models (.joblib)
+├── checkpoints/ # final, locked-in model weights (.pt) and fusion models (.joblib)
+├── checkpoints_experiment/ # checkpoints from hyperparameter/config exploration, kept for reference
 ├── logs/ , CLILogs/ # CSV logs from training, testing, and CLI runs
 ├── mediapipe/ # MediaPipe .task model files
 ├── Dockerfile
@@ -155,7 +159,7 @@ docker run --rm \
 
 **Data:** UTKFace + Lagenda-derived images, combined and split 70/20/10 (train/val/test). ~10% of images were excluded via a blocklist where MediaPipe failed to detect a face, applied consistently across all splits and all masking conditions.
 
-**Hyperparameters:** determined through systematic, one-variable-at-a-time testing — batch size (32/64/128), learning rate (0.0001–0.01), and loss function (L1 vs. MSE) — landing on batch size 64, learning rate 0.001–0.003, 30 epochs, and L1 loss.
+**Hyperparameters:** determined through systematic, one variable at a time testing , batch size (32/64/128), learning rate (0.0001–0.01), and loss function (L1 vs. MSE) — landing on batch size 64, learning rate 0.001–0.003, 30 epochs, and L1 loss.
 
 **Class imbalance:** the dataset is heavily skewed toward ages 20–40. A hybrid class-weighted loss was implemented — inverse-square-root frequency weighting per exact age below a threshold, pooled into buckets above it, capped to prevent instability — which measurably reduced error on underrepresented older ages at a small cost to overall accuracy.
 
