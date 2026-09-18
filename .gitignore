@@ -10,5 +10,3 @@ __pycache__/
 *.pth
 .DS_Store
 EOF
-logs/
-checkpoints/

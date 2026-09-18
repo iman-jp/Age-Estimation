@@ -1,0 +1,8 @@
+click
+pillow
+pandas
+scikit-learn
+joblib
+numpy
+ultralytics
+mediapipe

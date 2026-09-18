@@ -14,7 +14,7 @@ from dataset import AgeDataset, basic_transform, load_blocklist
 
 
 if __name__ == "__main__":
-
+    # IMPOTANT NOTE : SET THE HYPERPARAMETERS ALWAYS BEFORE RUNNING THE SCRIPT
     hyperparameters = {
         "batch_size": 64,
         "start_epoch": 0,
@@ -24,21 +24,18 @@ if __name__ == "__main__":
         "bucket_threshold": 65,
         "bucket_size": 10,
     }
-
+    # generate a unique run ID based on hyperparameters and timestamp
     hyperparameters["run_id"] = (
-        # f"bs{hyperparameters['batch_size']}"
-        # f"_ep{hyperparameters['num_epochs']}"
-        # f"_lr{hyperparameters['learning_rate']}"
-        # f"_classWeightedHybrid"
-        # f"_capMultiplier{hyperparameters['cap_multiplier']}"
-        # f"_bucketThreshold{hyperparameters['bucket_threshold']}"
-        # f"_bucketSize{hyperparameters['bucket_size']}"
-        # f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        # f"_softplus"
-        # f"_with_blocklist"
-        f"base_model"
-        f"_upper_face_masked"
+        f"bs{hyperparameters['batch_size']}"
+        f"_ep{hyperparameters['num_epochs']}"
+        f"_lr{hyperparameters['learning_rate']}"
+        f"_classWeightedHybrid"
+        f"_capMultiplier{hyperparameters['cap_multiplier']}"
+        f"_bucketThreshold{hyperparameters['bucket_threshold']}"
+        f"_bucketSize{hyperparameters['bucket_size']}"
         f"_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        f"_softplus"
+        f"_with_blocklist"
     )
 
     model = build_age_model()
@@ -59,9 +56,6 @@ if __name__ == "__main__":
         print(f"Resumed from checkpoint: epoch {start_epoch}, best val loss so far: {best_val_loss:.4f}")
     else:
         print("No checkpoint found, starting fresh")
-
-    # train_dataset = AgeDataset("/home/omid/Age-Estimation/data/train", transform=basic_transform)
-    # val_dataset = AgeDataset("/home/omid/Age-Estimation/data/val", transform=basic_transform)
 
     blocklist = load_blocklist("/home/omid/Age-Estimation/logs/no_face_detection.csv")
 
