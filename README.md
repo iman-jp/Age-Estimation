@@ -35,31 +35,31 @@ Age-Estimation/
 ├── src/
 │ ├── cli.py # Click-based CLI: train, infer, evaluate, model-test, model-fusion
 │ ├── dataset.py # AgeDataset, filename parsing, blocklist, class weighting
-│ ├── model.py # build_age_model() — YOLO26n-cls with regression head
+│ ├── model.py # build_age_model()  YOLO26n-cls with regression head
 │ ├── train.py # training-step functions (plain and weighted)
 │ ├── evaluate.py # validate()
 │ ├── logging_utils.py # CSV logging helpers
 │ ├── exec.py # plain L1 baseline training runner
-│ ├── exec_class_weighted.py # per-age weighted training runner
+│ ├── exec_class_weighted.py # per age weighted training runner
 │ ├── exec_class_weighted_hybrid.py # final locked training runner (hybrid weighting)
-│ ├── build_fusion_data.py # builds per-image prediction table across all 9 models
-│ ├── train_fusion_model.py # trains and bootstrap-tests the 3 fusion models
+│ ├── build_fusion_data.py # builds per image prediction table across all 9 models
+│ ├── train_fusion_model.py # trains and bootstrap tests the 3 fusion models
 │ └── masking/
 │ ├── masking.py # applies a masking condition across a dataset
 │ ├── mediapipe_init.py # MediaPipe face/pose landmarker setup
 │ ├── body_part.py # facial region landmark index definitions
 │ └── failurelog.py # logs images where face detection failed
 ├── tests/
-│ ├── test_model.py # test-set evaluation with per-image CSV output
-│ ├── test_fusion_model.py # per-image fusion model results
-│ ├── predict_single_image.py # single-image inference sanity check
+│ ├── test_model.py # test-set evaluation with per image CSV output
+│ ├── test_fusion_model.py # per image fusion model results
+│ ├── predict_single_image.py # single image inference sanity check
 │ ├── test_UTKface.py # dataset/filename parsing checks
 │ ├── mediapipe_pipeline.py # masking pipeline test
-│ └── segmentation.py # segmentation-related test
+│ └── segmentation.py # segmentation related test
 ├── data/
 │ ├── splits/ # train / val / test, unmasked
 │ └── masked/ # one folder per masking condition, each with train/val/test
-├── checkpoints/ # final, locked-in model weights (.pt) and fusion models (.joblib)
+├── checkpoints/ # final, locked in model weights (.pt) and fusion models (.joblib)
 ├── checkpoints_experiment/ # checkpoints from hyperparameter/config exploration, kept for reference
 ├── logs/ , CLILogs/ # CSV logs from training, testing, and CLI runs
 ├── mediapipe/ # MediaPipe .task model files
