@@ -170,7 +170,7 @@ docker run --rm \
   -v $(pwd)/checkpoints:/app/checkpoints \
   -v $(pwd)/data:/app/data \
   -v $(pwd)/CLILogs:/app/CLILogs \
-  age-estimation-cli evaluate --checkpoint checkpoints/base_model.pt --test-dir data/splits/test --blocklist logs/no_face_detection.csv
+  age-estimation-cli evaluate --checkpoint checkpoints/base_model.pt --test-dir data/splits/test 
 
 # batch inference on a folder
 docker run --rm \
@@ -190,8 +190,7 @@ docker run --rm \
 **If you set up natively:**
 ```bash
 # full test-set evaluation
-python3 src/cli.py evaluate --checkpoint checkpoints/base_model.pt --test-dir data/splits/test --blocklist logs/no_face_detection.csv
-
+python3 src/cli.py evaluate --checkpoint checkpoints/base_model.pt --test-dir data/splits/test 
 # batch inference on a folder
 python3 src/cli.py infer --checkpoint checkpoints/base_model.pt --input-dir data/splits/test
 
@@ -199,7 +198,7 @@ python3 src/cli.py infer --checkpoint checkpoints/base_model.pt --input-dir data
 python3 src/cli.py model-fusion --image data/splits/test/<any_filename>.jpg --method bayesian
 
 # retrain from scratch (requires GPU)
-python3 src/cli.py train --train-dir data/splits/train --val-dir data/splits/val --blocklist logs/no_face_detection.csv
+python3 src/cli.py train --train-dir data/splits/train --val-dir data/splits/val 
 ```
 
 Equivalent Docker commands for `infer`, `evaluate`, `model-test`, and `model-fusion` are listed in the [Docker setup](#docker-setup) section below.
