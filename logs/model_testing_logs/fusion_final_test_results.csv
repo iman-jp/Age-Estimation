@@ -1,0 +1,5 @@
+model,test_mae,improvement_over_base,ci_low,ci_high
+base,10.7555,0.0,,
+decision_tree,10.6719,0.0836,0.0093,0.1593
+random_forest,10.4919,0.2637,0.2034,0.3224
+bayesian_ridge,10.4785,0.2771,0.2149,0.3373

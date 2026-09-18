@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from dataset import AgeDataset, basic_transform, load_blocklist
 from model import build_age_model
 
-
+# all of the masked models and the base model, with their checkpoints and val directories
 models_path = {
     "pred_base": [
         "checkpoints/bs64_ep40_lr0.003_classWeightedHybrid_capMultiplier10.0_bucketThreshold65_bucketSize10_20260904_200247_softplus_with_blocklist.pt",
@@ -49,7 +49,7 @@ models_path = {
     ],
 }
 
-
+# lopad checkpoint, run inference on the val set, and return a dict of predictions and true ages
 def get_predictions(checkpoint_path, data_dir, blocklist, batch_size=32):
     model = build_age_model()
     model.model.to("cuda")

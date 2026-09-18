@@ -14,14 +14,14 @@ import torch.nn as nn
 
 if __name__ == "__main__":
 
-    hyperparameters = {
+    # IMPOTANT NOTE : SET THE HYPERPARAMETERS ALWAYS BEFORE RUNNING THE SCRIPT
         "batch_size": 64,
         "start_epoch": 0,
         "num_epochs": 30,
         "learning_rate": 0.001,
         "cap_multiplier": 10.0,
     }
-
+    # generate a unique run ID based on hyperparameters and timestamp
     hyperparameters["run_id"] = (
         f"bs{hyperparameters['batch_size']}"
         f"_ep{hyperparameters['num_epochs']}"

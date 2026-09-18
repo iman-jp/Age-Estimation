@@ -6,6 +6,7 @@ import click
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import pandas as pd
 from torch.utils.data import DataLoader
 from PIL import Image
 
@@ -244,6 +245,76 @@ def model_test(model, image):
 
     print(f"{model}: predicted age {predicted_age.item():.2f}")
 
+# test a single image with running it throw the mediapipe face landmark detection, 
+# applying the various masking variants, and then running the fusion model to get a final predicted age
+# example command:
+# python3 src/cli.py model-fusion \
+#   --image data/splits/test/age39_069711.jpg \
+#   --method bayesian
+@cli.command(name="model-fusion")
+@click.option("--image", required=True)
+@click.option("--method", type=click.Choice(["tree", "forest", "bayesian"]), default="bayesian")
+def model_fusion(image, method):
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "masking"))
+    from mediapipe_init import media_pipe
+    from masking import detect_face_landmarks, apply_masking_variant, VARIANT_DEFINITIONS
+    import joblib
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    # variant name -> (checkpoint path, feature column name)
+    conditions = {
+        "bulls_eye_masked":  ("checkpoints/base_model_bulls_eye_masked_20260909_205044.pt", "pred_bulls_eye"),
+        "chin_masked":       ("checkpoints/base_model_chin_masked_20260910_094311.pt", "pred_chin"),
+        "eyes_e_masked":      ("checkpoints/base_model_eyes_e_masked_20260910_085215.pt", "pred_eyes_extended"),
+        "eyes_masked":        ("checkpoints/base_model_eyes_masked_20260909_214026.pt", "pred_eyes"),
+        "lips_masked":        ("checkpoints/base_model_lips_masked_20260910_105858.pt", "pred_lips"),
+        "lower_face_masked":  ("checkpoints/base_model_lower_face_masked_20260910_124234.pt", "pred_lower_face"),
+        "nose_masked":        ("checkpoints/base_model_nose_masked_20260910_140105.pt", "pred_nose"),
+        "upper_face_masked":  ("checkpoints/base_model_upper_face_masked_20260910_145207.pt", "pred_upper_face"),
+    }
+
+    print("detecting face landmarks...")
+    face_landmarker, pose_landmarker = media_pipe()
+    status, image_np, landmarks, w, h = detect_face_landmarks(image, face_landmarker, pose_landmarker)
+
+    if status == "failed":
+        print("no face detected in this image, cannot run fusion")
+        return
+
+    def predict_from_array(checkpoint_path, img_array):
+        m = build_age_model()
+        m.model.to(device)
+        ckpt = torch.load(checkpoint_path, map_location=device)
+        m.model.load_state_dict(ckpt["model_state_dict"])
+        m.model.eval()
+        pil_img = Image.fromarray(img_array).convert("RGB")
+        tensor = basic_transform(pil_img).unsqueeze(0).to(device)
+        with torch.no_grad():
+            out = m.model(tensor)
+            out = out[1] if isinstance(out, tuple) else out
+        return out.item()
+
+    predictions = {"pred_base": predict_from_array("checkpoints/base_model.pt", image_np)}
+    print(f"pred_base: {predictions['pred_base']:.2f}")
+
+    for variant_name, (checkpoint_path, feature_name) in conditions.items():
+        indices_groups = VARIANT_DEFINITIONS[variant_name]
+        masked_np = apply_masking_variant(image_np, landmarks, w, h, indices_groups)
+        predictions[feature_name] = predict_from_array(checkpoint_path, masked_np)
+        print(f"{feature_name}: {predictions[feature_name]:.2f}")
+
+    fusion_model = joblib.load(f"checkpoints/fusion_model_{method}.joblib")
+    feature_order = ["pred_base", "pred_upper_face", "pred_nose", "pred_lower_face",
+                      "pred_lips", "pred_eyes", "pred_eyes_extended", "pred_chin", "pred_bulls_eye"]
+    X = pd.DataFrame([[predictions[col] for col in feature_order]], columns=feature_order)
+
+    face_landmarker.close()
+    pose_landmarker.close()
+
+    final_prediction = fusion_model.predict(X)[0]
+    print(f"\nfusion ({method}) predicted age: {final_prediction:.2f}")
 
 if __name__ == "__main__":
     cli()

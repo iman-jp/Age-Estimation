@@ -13,7 +13,7 @@ from datetime import datetime
 
 
 if __name__ == "__main__":
-
+    # IMPOTANT NOTE : SET THE HYPERPARAMETERS ALWAYS BEFORE RUNNING THE SCRIPT
     hyperparameters = {
         "batch_size": 64,
         "start_epoch": 0,
@@ -21,7 +21,7 @@ if __name__ == "__main__":
         "learning_rate": 0.001,
         "loss_function": nn.L1Loss(),
     }
-
+    # generate a unique run ID based on hyperparameters and timestamp
     hyperparameters["run_id"] = (
         f"bs{hyperparameters['batch_size']}"
         f"_ep{hyperparameters['num_epochs']}"
