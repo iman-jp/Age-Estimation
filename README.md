@@ -105,6 +105,73 @@ docker run --rm \
 
 ---
 
+## Setting Up
+
+Follow these steps to clone the project and get a first result running.
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/iman-jp/Age-Estimation.git
+cd Age-Estimation
+```
+
+Checkpoints and logs are already included in the repository — no separate download needed for those.
+
+### 2. Get the dataset
+
+`data/` is excluded from version control (too large for git). Obtain the dataset separately (see delivery instructions provided alongside this repository) and place it so the structure matches:
+
+```
+Age-Estimation/
+├── data/
+│ ├── splits/{train,val,test}/
+│ └── masked/{condition}/{train,val,test}/
+```
+
+### 3. Choose a setup path
+
+**Docker (fastest — no Python/GPU setup needed)**, for `infer`, `evaluate`, `model-test`, and `model-fusion`:
+```bash
+docker build -t age-estimation-cli .
+```
+
+**Native setup**, required for `train` (GPU-dependent, not containerized):
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install torch torchvision  # matched to your GPU — see pytorch.org's selector for CUDA, or repo.radeon.com for ROCm
+pip install ultralytics mediapipe click pandas scikit-learn joblib pillow numpy
+```
+
+### 4. Verify the setup
+
+Before running anything heavier, confirm the CLI and a model load correctly:
+```bash
+python3 src/cli.py --help
+python3 src/cli.py model-test --model base --image data/splits/test/<any_filename>.jpg
+```
+
+### 5. Run the project
+
+```bash
+# full test-set evaluation
+python3 src/cli.py evaluate --checkpoint checkpoints/base_model.pt --test-dir data/splits/test --blocklist logs/no_face_detection.csv
+
+# batch inference on a folder
+python3 src/cli.py infer --checkpoint checkpoints/base_model.pt --input-dir data/splits/test
+
+# fusion prediction on one image, combining all 9 models
+python3 src/cli.py model-fusion --image data/splits/test/<any_filename>.jpg --method bayesian
+
+# retrain from scratch (native setup only, requires GPU)
+python3 src/cli.py train --train-dir data/splits/train --val-dir data/splits/val --blocklist logs/no_face_detection.csv
+```
+
+Equivalent Docker commands for `infer`, `evaluate`, `model-test`, and `model-fusion` are listed in the [Docker setup](#docker-setup) section below.
+
+---
+
 ## How to use the CLI
 
 All commands can be run either directly (`python3 src/cli.py <command> ...`) or through the Docker container, as shown below. The Docker examples mount your local `checkpoints/`, `data/`, and `CLILogs/` folders so the container can read your data and write results back to your machine.
