@@ -116,11 +116,11 @@ git clone https://github.com/iman-jp/Age-Estimation.git
 cd Age-Estimation
 ```
 
-Checkpoints and logs are already included in the repository — no separate download needed for those.
+Checkpoints and logs are already included in the repository, no separate download needed for those.
 
 ### 2. Get the dataset
 
-`data/` is excluded from version control (too large for git). Obtain the dataset separately (see delivery instructions provided alongside this repository) and place it so the structure matches:
+`data/` is excluded from version control (too large for git). Obtain the dataset separately and place it so the structure matches:
 
 ```
 Age-Estimation/
@@ -131,7 +131,7 @@ Age-Estimation/
 
 ### 3. Choose a setup path
 
-**Docker (fastest — no Python/GPU setup needed)**, for `infer`, `evaluate`, `model-test`, and `model-fusion`:
+**Docker (fastest no Python/GPU setup needed)**, for `infer`, `evaluate`, `model-test`, and `model-fusion`:
 ```bash
 docker build -t age-estimation-cli .
 ```
@@ -140,7 +140,7 @@ docker build -t age-estimation-cli .
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip install torch torchvision  # matched to your GPU — see pytorch.org's selector for CUDA, or repo.radeon.com for ROCm
+pip install torch torchvision  # matched to your GPU (see pytorch.org's selector for CUDA, or repo.radeon.com for ROCm)
 pip install ultralytics mediapipe click pandas scikit-learn joblib pillow numpy
 ```
 
@@ -176,7 +176,7 @@ Equivalent Docker commands for `infer`, `evaluate`, `model-test`, and `model-fus
 
 All commands can be run either directly (`python3 src/cli.py <command> ...`) or through the Docker container, as shown below. The Docker examples mount your local `checkpoints/`, `data/`, and `CLILogs/` folders so the container can read your data and write results back to your machine.
 
-**`train`** — train a model from scratch or resume from a checkpoint. *(Not containerized — requires GPU access; run this directly on a machine with a configured GPU environment.)*
+**`train`** — train a model from scratch or resume from a checkpoint. *(Not containerized requires GPU access; run this directly on a machine with a configured GPU environment.)*
 ```bash
 python3 src/cli.py train \
   --train-dir data/splits/train --val-dir data/splits/val \
