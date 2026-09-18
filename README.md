@@ -13,15 +13,15 @@
 
 ## What this project does and how far it came
 
-This project investigates which regions of a human face carry the most information for **age estimation**, using a masking-based ablation study. A YOLO26n-cls backbone was repurposed from its original 1000-class ImageNet classifier into a single-value age regression model, then trained on a combined UTKFace + Lagenda dataset (~109,000 images).
+This project investigates which regions of a human face carry the most information for **age estimation**, using a masking-based ablation study. A YOLO26n-cls backbone was repurposed from its original 1000-class ImageNet classifier into a single-value age regression model, then trained on a combined UTKFace + Lagenda dataset (~100,000 images).
 
-To determine feature importance, nine models were trained under an identical, locked configuration — one on the unmasked (base) dataset, and eight more, each on a version of the dataset with a specific facial region masked out (eyes, eyes + surrounding area, nose, lips, chin, a central "bulls-eye" region, upper face, and lower face). Comparing each masked model's error against the base model's error reveals how much age-relevant signal was removed along with that region.
+To determine feature importance, nine models were trained under an identical, locked configuration  one on the unmasked (base) dataset, and eight more, each on a version of the dataset with a specific facial region masked out (eyes, eyes + surrounding area, nose, lips, chin, Glabella(area between two eyes), upper face, and lower face). Comparing each masked model's error against the base model's error reveals how much age relevant signal was removed along with that region.
 
 As an additional exploratory step, three fusion models (Decision Tree, Random Forest, and Bayesian Ridge) were trained to combine all nine individual models' predictions into a single, improved estimate.
 
 **Current state of the project:**
 - Training pipeline fully built, tuned, and locked to a final configuration (batch size 64, hybrid class-weighted L1 loss, Softplus-constrained regression head)
-- All 9 models (base + 8 masking conditions) trained and evaluated on a held-out test set
+- All 9 models (base + 8 masking conditions) trained and evaluated on a held out test set
 - Fusion models trained and evaluated, with bootstrap confidence intervals confirming their improvement over the base model is statistically real, not noise
 - A command-line interface (CLI) built with Click, covering training, batch inference, single-image testing, evaluation, and fusion-model inference
 - A CPU-only Docker container built and verified, covering all commands except training (which requires GPU access, see [Docker setup](#docker-setup))
@@ -30,6 +30,7 @@ As an additional exploratory step, three fusion models (Decision Tree, Random Fo
 
 ## Project structure
 
+```
 Age-Estimation/
 ├── src/
 │ ├── cli.py # Click-based CLI: train, infer, evaluate, model-test, model-fusion
@@ -61,14 +62,14 @@ Age-Estimation/
 ├── Dockerfile
 ├── requirements-docker.txt
 └── .dockerignore
-
+```
 ---
 
 ## Setup requirements
 
 - **Python 3.12**
 - **GPU (for training only):** NVIDIA (CUDA) or AMD (ROCm 7.2+); training runs on CPU as a fallback but is significantly slower
-- **WSL2 + Ubuntu 24.04** if on Windows with an AMD GPU (see project notes for ROCm/WSL setup)
+- **WSL2 + Ubuntu 24.04** if on Windows with an AMD GPU 
 
 **Libraries needed** (install into a virtual environment):
 ```bash
@@ -76,7 +77,7 @@ pip install torch torchvision  # matched to your GPU backend — see PyTorch's i
 pip install ultralytics mediapipe click pandas scikit-learn joblib pillow numpy
 ```
 
-For AMD/ROCm specifically, install the ROCm-matched PyTorch wheels from `repo.radeon.com` rather than the default PyPI build — see project setup notes for exact versions used (torch 2.9.1+rocm7.2.0, torchvision 0.24.0+rocm7.2.0).
+For AMD/ROCm specifically, install the ROCm-matched PyTorch wheels from `repo.radeon.com` rather than the default PyPI build see project setup notes for exact versions used (torch 2.9.1+rocm7.2.0, torchvision 0.24.0+rocm7.2.0).
 
 ---
 
@@ -102,9 +103,9 @@ docker run --rm \
 
 ## How to use the CLI
 
-All commands are run via `python3 src/cli.py <command> [options]` (or the equivalent `docker run` form above).
+All commands can be run either directly (`python3 src/cli.py <command> ...`) or through the Docker container, as shown below. The Docker examples mount your local `checkpoints/`, `data/`, and `CLILogs/` folders so the container can read your data and write results back to your machine.
 
-**`train`** — train a model from scratch or resume from a checkpoint:
+**`train`** — train a model from scratch or resume from a checkpoint. *(Not containerized — requires GPU access; run this directly on a machine with a configured GPU environment.)*
 ```bash
 python3 src/cli.py train \
   --train-dir data/splits/train --val-dir data/splits/val \
@@ -114,29 +115,43 @@ python3 src/cli.py train \
 
 **`infer`** — batch inference over a folder of images, writing predictions to a CSV:
 ```bash
-python3 src/cli.py infer --checkpoint checkpoints/base_model.pt --input-dir data/splits/test
+docker run --rm \
+  -v $(pwd)/checkpoints:/app/checkpoints \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/CLILogs:/app/CLILogs \
+  age-estimation-cli infer --checkpoint checkpoints/base_model.pt --input-dir data/splits/test
 ```
 
 **`evaluate`** — full test-set evaluation, reporting MAE and logging per-image results:
 ```bash
-python3 src/cli.py evaluate --checkpoint checkpoints/base_model.pt --test-dir data/splits/test --blocklist logs/no_face_detection.csv
+docker run --rm \
+  -v $(pwd)/checkpoints:/app/checkpoints \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/CLILogs:/app/CLILogs \
+  age-estimation-cli evaluate --checkpoint checkpoints/base_model.pt --test-dir data/splits/test
 ```
 
 **`model-test`** — quick single-image prediction from any trained model, by name:
 ```bash
-python3 src/cli.py model-test --model eyes_masked --image path/to/photo.jpg
+docker run --rm \
+  -v $(pwd)/checkpoints:/app/checkpoints \
+  -v $(pwd)/data:/app/data \
+  age-estimation-cli model-test --model eyes_masked --image data/splits/test/some_photo.jpg
 ```
 
 **`model-fusion`** — runs a single image through all 9 models (masking it live for each condition) and combines the results via a chosen fusion method:
 ```bash
-python3 src/cli.py model-fusion --image path/to/photo.jpg --method bayesian
+docker run --rm \
+  -v $(pwd)/checkpoints:/app/checkpoints \
+  -v $(pwd)/data:/app/data \
+  age-estimation-cli model-fusion --image data/splits/test/some_photo.jpg --method bayesian
 ```
 
 ---
 
 ## How we did the training
 
-**Model:** YOLO26n-cls backbone (ImageNet-pretrained), with the original 1000-class head replaced by `Linear(1280 → 1) + Softplus`, converting it into an age regression model. Softplus was chosen over ReLU to avoid dead gradients near zero and guarantee non-negative age predictions.
+**Model:** YOLO26n-cls backbone (ImageNet-pretrained), with the original 1000 class head replaced by `Linear(1280 → 1) + Softplus`, converting it into an age regression model. Softplus was chosen over ReLU to avoid dead gradients near zero and guarantee non-negative age predictions.
 
 **Data:** UTKFace + Lagenda-derived images, combined and split 70/20/10 (train/val/test). ~10% of images were excluded via a blocklist where MediaPipe failed to detect a face, applied consistently across all splits and all masking conditions.
 
