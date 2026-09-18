@@ -49,7 +49,6 @@ def cli():
 #   --batch-size 64 \
 #   --epochs 2 \
 #   --lr 0.001 \
-#   --blocklist logs/no_face_detection.csv \
 #   --checkpoint-dir checkpoints \
 #   --log-path logs/training_log.csv
 def train(train_dir, val_dir, batch_size, epochs, lr, weighted, bucket_threshold,
@@ -159,7 +158,6 @@ def infer(checkpoint, input_dir, output_csv):
 # python3 src/cli.py evaluate \
 #   --checkpoint checkpoints/base_model.pt \
 #   --test-dir /home/omid/Age-Estimation/data/splits/test \
-#   --blocklist logs/no_face_detection.csv \
 #   --output-csv logs/base_model_test_results.csv
 def evaluate_cmd(checkpoint, test_dir, blocklist, output_csv):
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -172,6 +170,9 @@ def evaluate_cmd(checkpoint, test_dir, blocklist, output_csv):
 
     blocklist_map = load_blocklist(blocklist) if blocklist else {}
     test_dataset = AgeDataset(test_dir, transform=basic_transform, blocked_filenames=blocklist_map.get("test", set()))
+    if len(test_dataset) == 0:
+        print(f"No images found in {test_dir} — check the path is correct.")
+        return
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=4)
 
     model.model.eval()
