@@ -146,7 +146,16 @@ pip install ultralytics mediapipe click pandas scikit-learn joblib pillow numpy
 
 ### 4. Verify the setup
 
-Before running anything heavier, confirm the CLI and a model load correctly:
+**If you set up Docker:**
+```bash
+docker run --rm age-estimation-cli --help
+docker run --rm \
+  -v $(pwd)/checkpoints:/app/checkpoints \
+  -v $(pwd)/data:/app/data \
+  age-estimation-cli model-test --model base --image data/splits/test/<any_filename>.jpg
+```
+
+**If you set up natively:**
 ```bash
 python3 src/cli.py --help
 python3 src/cli.py model-test --model base --image data/splits/test/<any_filename>.jpg
@@ -154,18 +163,42 @@ python3 src/cli.py model-test --model base --image data/splits/test/<any_filenam
 
 ### 5. Run the project
 
+**If you set up Docker:**
 ```bash
 # full test-set evaluation
-python3 src/cli.py evaluate --checkpoint checkpoints/base_model.pt --test-dir data/splits/test --blocklist logs/no_face_detection.csv
+docker run --rm \
+  -v $(pwd)/checkpoints:/app/checkpoints \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/CLILogs:/app/CLILogs \
+  age-estimation-cli evaluate --checkpoint checkpoints/base_model.pt --test-dir data/splits/test 
 
+# batch inference on a folder
+docker run --rm \
+  -v $(pwd)/checkpoints:/app/checkpoints \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/CLILogs:/app/CLILogs \
+  age-estimation-cli infer --checkpoint checkpoints/base_model.pt --input-dir data/splits/test
+
+# fusion prediction on one image, combining all 9 models
+docker run --rm \
+  -v $(pwd)/checkpoints:/app/checkpoints \
+  -v $(pwd)/data:/app/data \
+  age-estimation-cli model-fusion --image data/splits/test/<any_filename>.jpg --method bayesian
+```
+> **Note:** `train` is not containerized, since it requires GPU access. Run training natively (see below) on a machine with a configured GPU environment.
+
+**If you set up natively:**
+```bash
+# full test-set evaluation
+python3 src/cli.py evaluate --checkpoint checkpoints/base_model.pt --test-dir data/splits/test 
 # batch inference on a folder
 python3 src/cli.py infer --checkpoint checkpoints/base_model.pt --input-dir data/splits/test
 
 # fusion prediction on one image, combining all 9 models
 python3 src/cli.py model-fusion --image data/splits/test/<any_filename>.jpg --method bayesian
 
-# retrain from scratch (native setup only, requires GPU)
-python3 src/cli.py train --train-dir data/splits/train --val-dir data/splits/val --blocklist logs/no_face_detection.csv
+# retrain from scratch (requires GPU)
+python3 src/cli.py train --train-dir data/splits/train --val-dir data/splits/val 
 ```
 
 Equivalent Docker commands for `infer`, `evaluate`, `model-test`, and `model-fusion` are listed in the [Docker setup](#docker-setup) section below.
