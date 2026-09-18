@@ -27,7 +27,7 @@ tree_model = DecisionTreeRegressor(max_depth=4, random_state=42)
 tree_model.fit(X_train, y_train)
 tree_mae = mean_absolute_error(y_test, tree_model.predict(X_test))
 print(f"Decision Tree fusion MAE: {tree_mae:.4f}")
-joblib.dump(tree_model, "checkpoints/fusion_model_tree.joblib")
+joblib.dump(tree_model, "checkpoints_experiment/fusion_model_tree.joblib")
 
 for name, imp in sorted(zip(feature_columns, tree_model.feature_importances_), key=lambda x: -x[1]):
     print(f"  {name}: {imp:.3f}")
@@ -37,7 +37,7 @@ bayes_model = BayesianRidge()
 bayes_model.fit(X_train, y_train)
 bayes_mae = mean_absolute_error(y_test, bayes_model.predict(X_test))
 print(f"\nBayesian Ridge fusion MAE: {bayes_mae:.4f}")
-joblib.dump(bayes_model, "checkpoints/fusion_model_bayesian.joblib")
+joblib.dump(bayes_model, "checkpoints_experiment/fusion_model_bayesian.joblib")
 
 for name, coef in sorted(zip(feature_columns, bayes_model.coef_), key=lambda x: -abs(x[1])):
     print(f"  {name}: {coef:.3f}")
@@ -47,7 +47,7 @@ forest_model = RandomForestRegressor(n_estimators=100, max_depth=4, random_state
 forest_model.fit(X_train, y_train)
 forest_mae = mean_absolute_error(y_test, forest_model.predict(X_test))
 print(f"\nRandom Forest fusion MAE: {forest_mae:.4f}")
-joblib.dump(forest_model, "checkpoints/fusion_model_forest.joblib")
+joblib.dump(forest_model, "checkpoints_experiment/fusion_model_forest.joblib")
 
 for name, imp in sorted(zip(feature_columns, forest_model.feature_importances_), key=lambda x: -x[1]):
     print(f"  {name}: {imp:.3f}")

@@ -6,7 +6,5 @@ rocm-env/
 sapiens/
 __pycache__/
 *.pyc
-*.pt
-*.pth
 .DS_Store
 EOF
