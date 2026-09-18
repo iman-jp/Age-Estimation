@@ -1,5 +1,7 @@
 import os
 import csv
+import sys
+import joblib
 from datetime import datetime
 
 import click
@@ -255,11 +257,9 @@ def model_test(model, image):
 @click.option("--image", required=True)
 @click.option("--method", type=click.Choice(["tree", "forest", "bayesian"]), default="bayesian")
 def model_fusion(image, method):
-    import sys
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), "masking"))
     from mediapipe_init import media_pipe
     from masking import detect_face_landmarks, apply_masking_variant, VARIANT_DEFINITIONS
-    import joblib
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
