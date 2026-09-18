@@ -22,7 +22,7 @@ y_test = test_df["true_age"]
 base_mae = mean_absolute_error(y_test, X_test["pred_base"])
 print(f"Base model alone: {base_mae:.4f}\n")
 
-# --- Decision Tree ---
+# Decision Tree
 tree_model = DecisionTreeRegressor(max_depth=4, random_state=42)
 tree_model.fit(X_train, y_train)
 tree_mae = mean_absolute_error(y_test, tree_model.predict(X_test))
@@ -32,7 +32,7 @@ joblib.dump(tree_model, "checkpoints/fusion_model_tree.joblib")
 for name, imp in sorted(zip(feature_columns, tree_model.feature_importances_), key=lambda x: -x[1]):
     print(f"  {name}: {imp:.3f}")
 
-# --- Bayesian Ridge ---
+# Bayesian Ridge
 bayes_model = BayesianRidge()
 bayes_model.fit(X_train, y_train)
 bayes_mae = mean_absolute_error(y_test, bayes_model.predict(X_test))
@@ -42,7 +42,7 @@ joblib.dump(bayes_model, "checkpoints/fusion_model_bayesian.joblib")
 for name, coef in sorted(zip(feature_columns, bayes_model.coef_), key=lambda x: -abs(x[1])):
     print(f"  {name}: {coef:.3f}")
 
-# --- Random Forest ---
+# Random Forest
 forest_model = RandomForestRegressor(n_estimators=100, max_depth=4, random_state=42)
 forest_model.fit(X_train, y_train)
 forest_mae = mean_absolute_error(y_test, forest_model.predict(X_test))
